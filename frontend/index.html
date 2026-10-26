@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linux Resource Monitor</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; }
+    .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+    .metric-value { font-size: 2rem; font-weight: 700; }
+  </style>
+</head>
+<body class="p-3 p-md-4">
+  <div class="container-fluid" style="max-width: 1100px;">
+    
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
+      <div>
+        <h3 class="fw-bold mb-0">🖥️ Monitor GNU/Linux</h3>
+        <small class="text-secondary" id="hostTitle">Conectando...</small>
+      </div>
+      <div>
+        <span id="badgeStatus" class="badge text-bg-secondary">Desconectado</span>
+      </div>
+    </header>
+
+    <!-- Fila 1: Datos Fijos del Servidor -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card p-3 h-100">
+          <small class="text-secondary text-uppercase fw-semibold">Sistema</small>
+          <div class="fw-bold fs-5 mt-1" id="distroText">-</div>
+          <small class="text-secondary" id="kernelText">-</small>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card p-3 h-100">
+          <small class="text-secondary text-uppercase fw-semibold">Procesador</small>
+          <div class="fw-bold fs-5 mt-1 text-truncate" id="cpuModelText">-</div>
+          <small class="text-secondary" id="cpuCoresText">-</small>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card p-3 h-100">
+          <small class="text-secondary text-uppercase fw-semibold">Tiempo Activo</small>
+          <div class="fw-bold fs-5 mt-1 text-success" id="uptimeText">0h 0m</div>
+          <small class="text-secondary">Uptime</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fila 2: Indicadores Dinámicos -->
+    <div class="row g-3 mb-4">
+      <!-- CPU -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 text-center">
+          <small class="text-secondary text-uppercase fw-semibold">Uso de CPU</small>
+          <div class="metric-value text-warning my-1" id="cpuLoad">0%</div>
+          <div class="progress" style="height: 6px;">
+            <div id="cpuBar" class="progress-bar bg-warning" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RAM -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 text-center">
+          <small class="text-secondary text-uppercase fw-semibold">Memoria RAM</small>
+          <div class="metric-value text-info my-1" id="ramLoad">0%</div>
+          <div class="progress" style="height: 6px;">
+            <div id="ramBar" class="progress-bar bg-info" style="width: 0%"></div>
+          </div>
+          <small class="text-secondary mt-1" id="ramDetail">0 / 0 GB</small>
+        </div>
+      </div>
+
+      <!-- Disco -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 text-center">
+          <small class="text-secondary text-uppercase fw-semibold">Disco (<span id="diskMount">/</span>)</small>
+          <div class="metric-value text-primary my-1" id="diskLoad">0%</div>
+          <div class="progress" style="height: 6px;">
+            <div id="diskBar" class="progress-bar bg-primary" style="width: 0%"></div>
+          </div>
+          <small class="text-secondary mt-1" id="diskDetail">0 / 0 GB</small>
+        </div>
+      </div>
+
+      <!-- Red -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card p-3 text-center">
+          <small class="text-secondary text-uppercase fw-semibold">Tráfico de Red</small>
+          <div class="mt-2">
+            <span class="text-success fw-bold">↓ <span id="netRx">0.0</span></span> <small class="text-secondary">KB/s</small>
+          </div>
+          <div class="mt-1">
+            <span class="text-warning fw-bold">↑ <span id="netTx">0.0</span></span> <small class="text-secondary">KB/s</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fila 3: Gráfico en Tiempo Real -->
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-semibold">Historial de Recursos (CPU y RAM)</span>
+      </div>
+      <canvas id="resourceChart" height="90"></canvas>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
