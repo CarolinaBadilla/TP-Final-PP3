@@ -54,6 +54,7 @@ flowchart TD
         SVR -->|"Socket.IO Streaming"| WEB
         SVR -->|"Socket.IO Streaming LAN IP"| MOB["App Móvil HTML2APK"]
     end
+```
 
 ## Estructura del proyecto
 
