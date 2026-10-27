@@ -43,18 +43,17 @@ El sistema recolecta métricas de hardware mediante la librería `systeminformat
 
 ```mermaid
 flowchart TD
-    subgraph VM["Servidor GNU/Linux (Máquina Virtual)"]
+    subgraph VM["Servidor GNU/Linux Máquina Virtual"]
         SYS["systeminformation / SO"] -->|Métricas de Hardware| SVR["Backend Node.js + Express"]
         SVR -->|WebSockets Socket.IO| SVR
-        SD["systemd (monitor.service)"] -.->|Supervisión y Auto-start| SVR
+        SD["systemd monitor.service"] -.->|Supervisión y Auto-start| SVR
     end
 
     subgraph Clientes["Clientes"]
-        SVR -->|HTTP GET /api/datos & Static| WEB["Navegador Web (PC)"]
-        SVR -->|Socket.IO Streaming| WEB
-        SVR -->|Socket.IO Streaming (LAN/IP)| MOB["App Móvil (HTML2APK)"]
+        SVR -->|"HTTP GET /api/datos y Static"| WEB["Navegador Web PC"]
+        SVR -->|"Socket.IO Streaming"| WEB
+        SVR -->|"Socket.IO Streaming LAN IP"| MOB["App Móvil HTML2APK"]
     end
-```
 
 ## Estructura del proyecto
 
@@ -89,8 +88,8 @@ monitor-server/
 
 Para el desarrollo colaborativo se aplicaron las siguientes pautas:
 - `main`: Rama principal de producción con el código funcional y probado.
-- `feat/backend-monitor`: Rama asignada al integrante encargado del backend, API, WebSockets y servicio systemd.
-- `feat/frontend-ui`: Rama asignada al integrante encargado de la interfaz Bootstrap 5, gráficos dinámicos y empaquetado móvil.
+- `feat/carolina`: Rama asignada a la integrante Carolina.
+- `feat/martin`: Rama asignada al integrante Martin.
 - Integraciones controladas mediante `merge` hacia la rama principal.
 - Seguimiento de tareas y estados mediante **GitHub Projects (Kanban)**.
 
