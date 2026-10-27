@@ -126,8 +126,6 @@ La aplicación quedará disponible en el puerto `3000` de la IP del servidor.
 
 ## Configuración del Servicio systemd
 
-## Configuración del Servicio systemd
-
 Para que la aplicación funcione como un servicio en segundo plano y arranque automáticamente al reiniciar el sistema, se utiliza la ruta estándar `/opt/monitor-server` vinculada mediante un enlace simbólico:
 
 1. Crear el enlace simbólico desde la raíz del proyecto hacia `/opt/monitor-server`:
@@ -176,14 +174,6 @@ Frontend (Bootstrap 5 + Chart.js)
        ├── Acceso vía Web (http://IP_SERVIDOR:3000)
        └── Acceso vía App Móvil (APK empaquetado)
 ```
-
-## Capturas de pantalla
-
-![Dashboard Web](img/dashboard-web.png)
-
-![Aplicación Mobile](img/app-mobile.png)
-
-![Servicio systemd Activo](img/systemd-status.png)
 
 ## Pruebas Realizadas
 
