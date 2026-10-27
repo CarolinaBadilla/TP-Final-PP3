@@ -126,29 +126,36 @@ La aplicación quedará disponible en el puerto `3000` de la IP del servidor.
 
 ## Configuración del Servicio systemd
 
-Para que la aplicación funcione como un servicio del sistema operativo y arranque automáticamente al reiniciar la máquina virtual:
+## Configuración del Servicio systemd
 
-1. Copiar el archivo del servicio al directorio de systemd:
+Para que la aplicación funcione como un servicio en segundo plano y arranque automáticamente al reiniciar el sistema, se utiliza la ruta estándar `/opt/monitor-server` vinculada mediante un enlace simbólico:
+
+1. Crear el enlace simbólico desde la raíz del proyecto hacia `/opt/monitor-server`:
+   ```bash
+   sudo ln -s "$(pwd)" /opt/monitor-server
+    ```
+
+2. Copiar el archivo del servicio al directorio de systemd:
    ```bash
    sudo cp ../systemd/monitor.service /etc/systemd/system/monitor.service
    ```
 
-2. Recargar los daemons del sistema:
+3. Recargar los daemons del sistema:
    ```bash
    sudo systemctl daemon-reload
    ```
 
-3. Habilitar el servicio para el inicio automático del sistema:
+4. Habilitar el servicio para el inicio automático del sistema:
    ```bash
    sudo systemctl enable monitor.service
    ```
 
-4. Iniciar el servicio:
+5. Iniciar el servicio:
    ```bash
    sudo systemctl start monitor.service
    ```
 
-5. Comprobar el estado del servicio:
+6. Comprobar el estado del servicio:
    ```bash
    sudo systemctl status monitor.service
    ```
