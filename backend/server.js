@@ -13,90 +13,105 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(cors());
-
-// Servir la carpeta frontend situada al mismo nivel del backend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-function formatUptime(seconds) {
-  const d = Math.floor(seconds / (3600 * 24));
-  const h = Math.floor((seconds % (3600 * 24)) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
+// Función auxiliar para convertir segundos a formato legible
+function formatUptime(segundos) {
+  const d = Math.floor(segundos / 86400);
+  const h = Math.floor((segundos % 86400) / 3600);
+  const m = Math.floor((segundos % 3600) / 60);
   return `${d > 0 ? d + 'd ' : ''}${h}h ${m}m`;
 }
 
-// 1. API REST: Información estática
+// 1. Datos estáticos del hardware
 app.get('/api/datos', async (req, res) => {
   try {
-    const [osInfo, cpuInfo, memInfo] = await Promise.all([
-      si.osInfo(),
-      si.cpu(),
-      si.mem()
-    ]);
+    const osInfo = await si.osInfo();
+    const cpuInfo = await si.cpu();
+    const memInfo = await si.mem();
 
     res.json({
       hostname: osInfo.hostname,
       distro: `${osInfo.distro} ${osInfo.release}`,
-      kernel: osInfo.kernel,
-      arch: osInfo.arch,
+      kernel: `${osInfo.kernel} (${osInfo.arch})`,
       cpuModel: `${cpuInfo.manufacturer} ${cpuInfo.brand}`,
       cpuCores: cpuInfo.physicalCores || cpuInfo.cores,
-      totalRamGB: (memInfo.total / 1024 / 1024 / 1024).toFixed(2)
+      totalRamGB: (memInfo.total / 1024 ** 3).toFixed(2),
+      totalSwapGB: (memInfo.swaptotal / 1024 ** 3).toFixed(2)
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Ruta comodín para Express 5
 app.get('/*splat', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// 2. WebSockets: Métricas en tiempo real
+// 2. Transmisión de métricas en tiempo real
 io.on('connection', (socket) => {
-  const interval = setInterval(async () => {
+  const timer = setInterval(async () => {
     try {
-      const [load, mem, time, fsSize, netStats] = await Promise.all([
+      const [load, mem, time, fsSize, netStats, processes] = await Promise.all([
         si.currentLoad(),
         si.mem(),
         si.time(),
         si.fsSize(),
-        si.networkStats()
+        si.networkStats(),
+        si.processes()
       ]);
 
-      const disk = fsSize[0] || { size: 0, used: 0, use: 0, mount: '/' };
-      const net = netStats[0] || { rx_sec: 0, tx_sec: 0 };
+      // Unidad principal (C: en Windows o / en Linux)
+      const disco = fsSize[0] || { mount: '/', use: 0, used: 0, size: 0 };
+      const red = netStats[0] || { rx_sec: 0, tx_sec: 0 };
+
+      // Top 5 procesos que más CPU consumen
+      const listaProcesos = processes.list
+        .sort((a, b) => b.cpu - a.cpu)
+        .slice(0, 5)
+        .map((p) => ({
+          pid: p.pid,
+          name: p.name,
+          cpu: p.cpu.toFixed(1),
+          mem: p.mem.toFixed(1)
+        }));
 
       socket.emit('metricas', {
         timestamp: new Date().toLocaleTimeString(),
         uptime: formatUptime(time.uptime),
         cpu: {
-          load: (load.currentLoad || 0).toFixed(1)
+          load: load.currentLoad.toFixed(1),
+          loadAvg: load.avgLoad ? load.avgLoad.toFixed(2) : 'N/A'
         },
         ram: {
-          used: (mem.used / 1024 / 1024 / 1024).toFixed(2),
-          total: (mem.total / 1024 / 1024 / 1024).toFixed(2),
-          percentage: ((mem.used / mem.total) * 100).toFixed(1)
+          percentage: ((mem.used / mem.total) * 100).toFixed(1),
+          used: (mem.used / 1024 ** 3).toFixed(2),
+          total: (mem.total / 1024 ** 3).toFixed(2),
+          swapUsed: (mem.swapused / 1024 ** 3).toFixed(2),
+          swapTotal: (mem.swaptotal / 1024 ** 3).toFixed(2)
         },
         disk: {
-          mount: disk.mount,
-          percentage: (disk.use || 0).toFixed(1),
-          used: (disk.used / 1024 / 1024 / 1024).toFixed(2),
-          total: (disk.size / 1024 / 1024 / 1024).toFixed(2)
+          mount: disco.mount,
+          percentage: (disco.use || 0).toFixed(1),
+          used: (disco.used / 1024 ** 3).toFixed(2),
+          total: (disco.size / 1024 ** 3).toFixed(2)
         },
         network: {
-          rx: ((net.rx_sec || 0) / 1024).toFixed(1),
-          tx: ((net.tx_sec || 0) / 1024).toFixed(1)
-        }
+          rx: (red.rx_sec / 1024).toFixed(1),
+          tx: (red.tx_sec / 1024).toFixed(1)
+        },
+        processes: listaProcesos
       });
     } catch (err) {
-      console.error('Error al leer métricas:', err.message);
+      console.error('Error al emitir métricas:', err.message);
     }
   }, 1500);
 
-  socket.on('disconnect', () => clearInterval(interval));
+  socket.on('disconnect', () => {
+    clearInterval(timer);
+  });
 });
 
 server.listen(3000, () => {
-  console.log('Servidor corriendo en http://localhost:3000');
+  console.log('Servidor en ejecución en http://localhost:3000');
 });
