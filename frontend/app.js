@@ -1,6 +1,5 @@
-const BASE_URL = window.location.protocol.startsWith('http')
-  ? window.location.origin
-  : 'http://localhost:3000';
+const SERVER_IP = 'http://10.0.15.18:3000/';
+const BASE_URL = 'http://10.0.15.18:3000/';
 
 const badgeStatus = document.getElementById('badgeStatus');
 
