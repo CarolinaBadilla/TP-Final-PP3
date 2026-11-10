@@ -1,5 +1,4 @@
-const SERVER_IP = 'http://10.0.15.18:3000/';
-const BASE_URL = 'http://10.0.15.18:3000/';
+const BASE_URL = 'http://10.0.8.136:3000/';
 
 const badgeStatus = document.getElementById('badgeStatus');
 
